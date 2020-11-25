@@ -4,7 +4,7 @@ package main
 //femicidesinturkey.com/api/statistic/cause
 //femicidesinturkey.com/api/victim
 
-type FemicidesInTurkeyJsonResult struct {
+type FemicidesInTurkeyJson struct {
 	Message     interface{} `json:"message"`
 	Information struct {
 		Count int         `json:"count"`
@@ -42,7 +42,7 @@ func (v Victim) CreateSentence() string {
 	if v.IsSuitToCreateSentence() {
 
 	}
-	return ""
+	return "Test : " + v.FullName
 }
 
 func (v Victim) SelectByWhomStatement() string {
