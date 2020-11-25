@@ -35,24 +35,43 @@ type Victim struct {
 }
 
 func (v Victim) IsSuitToCreateSentence() bool {
-	return false
+	return true
+	//todo: fullname length, skip suicide cases.
 }
 
 func (v Victim) CreateSentence() string {
 	if v.IsSuitToCreateSentence() {
+		sentence := v.FullName + " was murdered "
 
+		sentence += v.ByWhomPart()
+		sentence += "in " + v.City + ", " + v.Year
+		return sentence + "."
 	}
-	return "Test : " + v.FullName
+
+	return ""
 }
 
-func (v Victim) SelectByWhomStatement() string {
+/*
+	killer definitions: femicidesinturkey.com/api/statistic/killer
+*/
+func (v Victim) ByWhomPart() string {
+	ByWhom := "by "
+
+	if v.Killer.Definition == "Someone she knowns" { //by someone she knows
+		ByWhom += v.Killer.Definition
+	} else if v.Killer.Definition == "Unknown" || v.Killer.Definition == "Foreigner" { // by unknown people, by foreigner people
+		ByWhom += v.Killer.Definition + " people"
+	} else { // by her husband, boyfriend, kinsman and others..
+		ByWhom += "her " + v.Killer.Definition
+	}
+
+	return ByWhom + " "
+}
+
+func (v Victim) SelectCauseStatement() string {
 	return ""
 }
 
 func (v Victim) SelectMethodStatement() string {
-	return ""
-}
-
-func (v Victim) SelectCauseStatement() string {
 	return ""
 }
