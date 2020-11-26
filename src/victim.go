@@ -1,9 +1,11 @@
 package main
 
-//femicidesinturkey.com/api/statistic/killer
-//femicidesinturkey.com/api/statistic/cause
-//femicidesinturkey.com/api/victim
+import (
+	"errors"
+	"strings"
+)
 
+//femicidesinturkey.com/api/victim
 type FemicidesInTurkeyJson struct {
 	Message     interface{} `json:"message"`
 	Information struct {
@@ -34,44 +36,79 @@ type Victim struct {
 	URL               string      `json:"url"`
 }
 
-func (v Victim) IsSuitToCreateSentence() bool {
-	return true
-	//todo: fullname length, skip suicide cases.
-}
+func (v Victim) IsFullNameSuit() bool {
+	fnLen := len(v.FullName)
+	fnLowered := strings.ToLower(v.FullName)
 
-func (v Victim) CreateSentence() string {
-	if v.IsSuitToCreateSentence() {
-		sentence := v.FullName + " was murdered "
-
-		sentence += v.ByWhomPart()
-		sentence += "in " + v.City + ", " + v.Year
-		return sentence + "."
+	if fnLen > 6 && !(strings.Contains(fnLowered, "ismi") || strings.Contains(fnLowered, "bilinmiyor") || strings.Contains(fnLowered, "undefined") || strings.Contains(fnLowered, "unknown")) {
+		return true
 	}
-
-	return ""
+	return false
 }
 
-/*
-	killer definitions: femicidesinturkey.com/api/statistic/killer
-*/
+func (v Victim) IsCauseSuit() bool {
+	if v.Causes[0].Cause != "Unknown" {
+		return true
+	}
+	return false
+}
+
+func (v Victim) IsSuitToCreateSentence() bool {
+	if v.IsFullNameSuit() && v.IsCauseSuit() {
+		return true
+	}
+	return false
+}
+
+func (v Victim) CreateSentence() (string, error) {
+	if v.IsSuitToCreateSentence() {
+		sentence := v.FullName + " was murdered " + v.ByWhomPart() + v.CausePart() + v.YearCityPart()
+		return sentence + ".", nil
+	}
+	return "", errors.New("Regular sentence can't create")
+}
+
 func (v Victim) ByWhomPart() string {
 	ByWhom := "by "
+	justBy := v.Killer.Definition == "Someone she knowns"
+	byPeople := v.Killer.Definition == "Unknown" || v.Killer.Definition == "Foreigner"
 
-	if v.Killer.Definition == "Someone she knowns" { //by someone she knows
+	if justBy {
 		ByWhom += v.Killer.Definition
-	} else if v.Killer.Definition == "Unknown" || v.Killer.Definition == "Foreigner" { // by unknown people, by foreigner people
+	} else if byPeople { // by unknown people, by foreigner people
 		ByWhom += v.Killer.Definition + " people"
 	} else { // by her husband, boyfriend, kinsman and others..
 		ByWhom += "her " + v.Killer.Definition
 	}
 
-	return ByWhom + " "
+	return strings.ToLower(ByWhom + " ")
 }
 
-func (v Victim) SelectCauseStatement() string {
-	return ""
+func (v Victim) CausePart() string {
+	Cause := ""
+
+	causeAfterThe := v.Causes[0].Cause == "Sexual assault" || v.Causes[0].Cause == "Break up"
+	causeBecause := strings.Contains(v.Causes[0].Cause, "Because")
+	causeWhile := strings.Contains(v.Causes[0].Cause, "Protecting")
+
+	if causeWhile { // murdered while doing
+		Cause += "while " + v.Causes[0].Cause
+	} else if causeBecause { // murdered because x
+		Cause += v.Causes[0].Cause
+	} else if causeAfterThe { // murdered after the break up
+		Cause += "after the " + v.Causes[0].Cause
+	} else { // murdered because of the money, envy, honor
+		Cause += "because of the " + v.Causes[0].Cause
+	}
+
+	return strings.ToLower(Cause)
 }
 
-func (v Victim) SelectMethodStatement() string {
-	return ""
+func (v Victim) YearCityPart() string {
+	YearCity := ", in " + v.Year
+
+	if v.City != "Unknown" {
+		YearCity += ", " + v.City
+	}
+	return YearCity
 }

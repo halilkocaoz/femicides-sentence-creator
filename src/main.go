@@ -35,7 +35,10 @@ func main() {
 	for i := 1; i < maxPage; i++ {
 		var FITJ FemicidesInTurkeyJson = GetFITJByPageNumber(i)
 		for _, v := range FITJ.Data {
-			println(v.CreateSentence())
+			sentence, err := v.CreateSentence()
+			if err == nil {
+				println(sentence)
+			}
 		}
 	}
 }
