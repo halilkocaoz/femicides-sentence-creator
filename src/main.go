@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -31,14 +33,30 @@ retry:
 
 func main() {
 	maxPage := GetFITJByPageNumber(1).Information.Pages
-
+	sentences := ""
 	for i := 1; i < maxPage; i++ {
 		var FITJ FemicidesInTurkeyJson = GetFITJByPageNumber(i)
 		for _, v := range FITJ.Data {
 			sentence, err := v.CreateSentence()
 			if err == nil {
-				println(sentence)
+				sentences += sentence + "\n"
 			}
 		}
 	}
+
+	Output(sentences)
+}
+
+func Output(data string) error {
+	file, err := os.Create("output.txt")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.WriteString(file, data)
+	if err != nil {
+		return err
+	}
+	return file.Sync()
 }

@@ -90,15 +90,18 @@ func (v Victim) CausePart() string {
 	causeAfterThe := v.Causes[0].Cause == "Sexual assault" || v.Causes[0].Cause == "Break up"
 	causeBecause := strings.Contains(v.Causes[0].Cause, "Because")
 	causeWhile := strings.Contains(v.Causes[0].Cause, "Protecting")
+	causeUnknown := v.Causes[0].Cause == "Unknown reason"
 
 	if causeWhile { // murdered while doing
 		Cause += "while " + v.Causes[0].Cause
-	} else if causeBecause { // murdered because x
+	} else if causeBecause { // murdered because sentence
 		Cause += v.Causes[0].Cause
 	} else if causeAfterThe { // murdered after the break up
 		Cause += "after the " + v.Causes[0].Cause
-	} else { // murdered because of the money, envy, honor
+	} else if !causeUnknown { // murdered because of the money, envy, honor
 		Cause += "because of the " + v.Causes[0].Cause
+	} else { // murdered because of a unknown reason
+		Cause += "because of a " + v.Causes[0].Cause
 	}
 
 	return strings.ToLower(Cause)
